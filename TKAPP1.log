@@ -1,0 +1,3 @@
+2025-03-15 13:23:49,522  -  lib.logger.applog                    -      INFO:  Logger initialized.
+2025-03-15 13:23:49,522  -  __main__                             -      INFO:  App Starting
+2025-03-15 13:23:52,357  -  __main__                             -      INFO:  App Ended

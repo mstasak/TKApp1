@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from lib.guiframework import AppPageBase
-
+from lib.datasource.sqlite import DataSource
 class MyMainPage(AppPageBase):
     """ Main page of app """
 
@@ -44,6 +44,9 @@ class MyMainPage(AppPageBase):
 
     def calculate(self,*args):
         try:
+            db = DataSource()
+            db.open_database()
+            db.close_database()
             value = float(self.feet)
             self.meters = int(0.3048 * value * 10000.0 + 0.5)/10000.0
         except ValueError:
