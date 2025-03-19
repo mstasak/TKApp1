@@ -7,7 +7,7 @@ class AppPageBase:
     def __init__(self, root: tk.Tk) -> None :
         self.root = root #copy of ui parent's MyApp.root
 
-    def buildpage(self) -> tk.Frame :
+    def build_page(self) -> tk.Frame :
         pass
 
 #    pass

@@ -15,49 +15,36 @@ class MyMainPage(AppPageBase):
 
     @override
     def build_page(self) -> tk.Frame :
-        root: tk.Tk = self.root
+        root = self.root
         #mainframe: tk.Frame = tk.Frame(master=self.root, padding=10)
         mainframe = ttk.Frame(master=root, padding="3 3 12 12")
-        root.geometry("800x600")
-        root.title("Projects")
 
-        mainframe.grid(column=0, row=0, sticky='nwes')
-        mainframe.columnconfigure(0, weight=1)
-        mainframe.rowconfigure(0, weight=1)
+        root.title("Feet to Meters")
 
-        # self.project_list = tk.Listbox(mainframe, bg='yellow', fg='black', bd='1',
-        #                                height='400', width='600', font='Courier New 10',
-        #                                highlightcolor='cyan')
-        self.project_list = tk.Listbox(mainframe, bg='yellow', fg='black', bd='1',
-                                       height=10, width=15, font='Courier 10',
-                                       highlightcolor='cyan')
-        self.project_list.grid(column=0, row=1)
-        for i in range(1,20):
-            self.project_list.insert(1,"apples")
-            self.project_list.insert(2,"oranges")
-            self.project_list.insert(3,"plums")
-            self.project_list.insert(4,"grapes")
-            self.project_list.insert(5,"bananas")
-        # self.feet = tk.StringVar()
-        # self.feet.set("???")
-        # feet_entry = ttk.Entry(mainframe, width=7, textvariable=self.feet)
-        # feet_entry.grid(column=2, row=1, sticky=(tk.W, tk.E))
-        #
-        # self.meters = tk.StringVar()
-        # self.meters.set("???")
-        # ttk.Label(mainframe, textvariable=self.meters).grid(column=2, row=2, sticky=(tk.W, tk.E))
-        #
-        # ttk.Button(mainframe, text="Calculate", command=self.calculate).grid(column=3, row=3, sticky=tk.W)
-        #
-        # ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky=tk.W)
-        # ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky=tk.E)
-        # ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky=tk.W)
-        #
-        # for child in mainframe.winfo_children():
-        #     child.grid_configure(padx=5, pady=5)
-        #
-        # feet_entry.focus()
-        # root.bind("<Return>", self.calculate)
+        mainframe.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(0, weight=1)
+
+        self.feet = tk.StringVar()
+        self.feet.set("???")
+        feet_entry = ttk.Entry(mainframe, width=7, textvariable=self.feet)
+        feet_entry.grid(column=2, row=1, sticky=(tk.W, tk.E))
+
+        self.meters = tk.StringVar()
+        self.meters.set("???")
+        ttk.Label(mainframe, textvariable=self.meters).grid(column=2, row=2, sticky=(tk.W, tk.E))
+
+        ttk.Button(mainframe, text="Calculate", command=self.calculate).grid(column=3, row=3, sticky=tk.W)
+
+        ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky=tk.W)
+        ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky=tk.E)
+        ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky=tk.W)
+
+        for child in mainframe.winfo_children():
+            child.grid_configure(padx=5, pady=5)
+
+        feet_entry.focus()
+        root.bind("<Return>", self.calculate)
 
         return mainframe
 

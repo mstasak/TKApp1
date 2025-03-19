@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+#from tkinter import ttk
 
 from .apppagebase import AppPageBase
 
@@ -12,17 +12,18 @@ class AppBase:
 
     def __init__(self) -> None :
         self.root = tk.Tk()
+        self.main_page: AppPageBase | None = None
 
     def run(self) -> bool : 
-        self._load_page(self._main_page)
+        self.load_page()
         self.root.mainloop()
-        self._unload_page()
+        self.unload_page()
         return True
         
-    def _load_page(self, page: AppPageBase) -> None:
-        self.root.frame = page.buildpage()
+    def load_page(self) -> None:
+        self.root.frame = self.main_page.build_page()
 
-    def _unload_page(self) -> None:
+    def unload_page(self) -> None:
         self.root.frame = None
         
     

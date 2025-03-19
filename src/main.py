@@ -1,6 +1,7 @@
 """ TKAPP1 main startup code """
 
 # very crude string output to debug package:class:module imports
+
 #import sys
 #raise RuntimeError(sys.path)
 
