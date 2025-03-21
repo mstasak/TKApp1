@@ -1,4 +1,5 @@
 import sqlite3
+import re
 from os.path import exists, isfile, join
 from pathlib import Path
 from platformdirs import user_data_dir
@@ -6,6 +7,8 @@ from typing import Any, List, Optional, Tuple
 from datetime import datetime
 
 class DataSource:
+
+    # Credit for regexp use from SQLite/python: https://gist.github.com/eestrada/fd55398950c6ee1f1deb
 
     @staticmethod
     def adapt_date_iso(val: datetime) -> str:
@@ -16,6 +19,16 @@ class DataSource:
     def convert_datetime(val: bytes) -> datetime:
         """Convert ISO 8601 datetime to datetime.datetime object."""
         return datetime.fromisoformat(val.decode())
+
+    @staticmethod
+    def regexp(y, x, search=re.search):
+        return 1 if search(y, x) else 0
+
+    # _shared: DataSource = DataSource()
+    #
+    # @staticmethod
+    # def shared() -> DataSource:
+    #     return _shared
 
     def __init__(self) -> None:
         #""" if nest_opens is true, Datasource will count opens and closes and keep connection open
@@ -71,6 +84,8 @@ class DataSource:
             self.create_database()
         db_path = DataSource._db_filepath()
         self.db = sqlite3.connect(db_path, autocommit=False)  # will create if file not found
+        self.db.create_function('regexp', 2, DataSource.regexp)
+
         return self.db is not None
 
     def close_database(self) -> bool:
@@ -85,6 +100,8 @@ class DataSource:
         was_open = self.db is not None
         if not was_open:
             self.open_database()
+        # TODO: detect if schema already exists and leave alone
+        # alternatively, use 'CREATE IF NOT EXISTS'-type DDL statements
         self.execute(
             """
             CREATE TABLE project (
@@ -221,6 +238,27 @@ class DataSource:
         self.db.execute(query, params)
         result = True
         self.db.commit()
+        if not was_open:
+            self.close_database()
+        return result
+
+    def get_project_list(self, reg_exp_pattern: str = "") -> List[Tuple[Any, ...]] | None:
+        result: List[Tuple[Any, ...]] | None = None
+        was_open: bool = self.db is not None
+        if not was_open:
+            self.open_database()
+        if self.db is None:
+            return result
+        #self.db.execute(query, params)
+        #result = True
+        #self.db.commit()
+        query: str = "SELECT id, name FROM project"
+        params: dict[str, Any] | None = None
+        if reg_exp_pattern != "":
+            #params = {':name', reg_exp_pattern}
+            query += " WHERE name REGEXP '[Cc]lean'"
+        query += " ORDER BY name"
+        result = self.query_multi_row(query, params)
         if not was_open:
             self.close_database()
         return result

@@ -5,6 +5,8 @@ from typing_extensions import override
 
 from lib.guiframework import AppPageBase
 from lib.datasource.sqlite import DataSource
+
+
 class MyMainPage(AppPageBase):
     """ Main page of app """
 
@@ -12,37 +14,51 @@ class MyMainPage(AppPageBase):
         super().__init__(root)
         #self.feet = ""
         #self.meters = ""
+        self.project_list: tk.Listbox | None = None
+        self.scrollbar: tk.Scrollbar | None = None
+        self._init_db()
+
+    @staticmethod
+    def _init_db():
+        db = DataSource()
+        db.create_database()  # does nothing if it already exists
+        #db.create_schema()  # create_database will create schema and load sample data
+        #db.open_database()
+        #db.load_sample_data()
+        #$db.close_database()
 
     @override
     def build_page(self) -> tk.Frame :
         root: tk.Tk = self.root
         #mainframe: tk.Frame = tk.Frame(master=self.root, padding=10)
-        mainframe = ttk.Frame(master=root, padding="3 3 12 12")
-        mainframe.grid(sticky="nsew")
+        self.mainframe = ttk.Frame(master=root, padding="3 3 12 12")
+        self.mainframe.grid(sticky="nsew")
         root.geometry("800x600")
         root.title("Projects")
 
-        mainframe.grid(column=0, row=0, sticky='nwes')
-        mainframe.columnconfigure(0, weight=1)
-        mainframe.rowconfigure(0, weight=1)
+        self.mainframe.grid(column=0, row=0, sticky='nwes')
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
 
         # self.project_list = tk.Listbox(mainframe, bg='yellow', fg='black', bd='1',
         #                                height='400', width='600', font='Courier New 10',
         #                                highlightcolor='cyan')
-        self.project_list = tk.Listbox(mainframe, bg= 'yellow', fg='black', bd='1',
+        self.project_list = tk.Listbox(self.mainframe, bg= 'yellow', fg='black', bd='1',
                                        height=10, width=15, font='Courier 10',
                                        highlightcolor='cyan')
-        self.scrollbar = tk.Scrollbar(mainframe, orient=tk.VERTICAL)
+        self.scrollbar = tk.Scrollbar(self.mainframe, orient=tk.VERTICAL)
         self.project_list.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.project_list.yview)
         self.project_list.grid(column=0, row=1, sticky='nsew')
         self.scrollbar.grid(column=1, row=1, sticky='ns')
-        for i in range(1,20):
-            self.project_list.insert(tk.END,"apples")
-            self.project_list.insert(tk.END,"oranges")
-            self.project_list.insert(tk.END,"plums")
-            self.project_list.insert(tk.END,"grapes")
-            self.project_list.insert(tk.END,"bananas")
+        # for i in range(1,20):
+        #     self.project_list.insert(tk.END,"apples")
+        #     self.project_list.insert(tk.END,"oranges")
+        #     self.project_list.insert(tk.END,"plums")
+        #     self.project_list.insert(tk.END,"grapes")
+        #     self.project_list.insert(tk.END,"bananas")
+        for row in DataSource().get_project_list( reg_exp_pattern = "clean"):
+            self.project_list.insert(tk.END, row[1])
         # self.feet = tk.StringVar()
         # self.feet.set("???")
         # feet_entry = ttk.Entry(mainframe, width=7, textvariable=self.feet)
@@ -64,18 +80,22 @@ class MyMainPage(AppPageBase):
         # feet_entry.focus()
         # root.bind("<Return>", self.calculate)
 
-        return mainframe
+        return self.mainframe
 
-    def calculate(self,*args):
-        try:
-            db = DataSource()
-            db.open_database()
-            db.load_sample_data()
-            db.close_database()
-            value = float(self.feet.get())
-            self.meters.set(str(int(0.3048 * value * 10000.0 + 0.5)/10000.0))
-        except ValueError:
-            pass
+    def load_list_data(self) -> None:
+
+        pass
+
+    # def calculate(self,*args):
+    #     try:
+    #         db = DataSource()
+    #         db.open_database()
+    #         db.load_sample_data()
+    #         db.close_database()
+    #         #value = float(self.feet.get())
+    #         #self.meters.set(str(int(0.3048 * value * 10000.0 + 0.5)/10000.0))
+    #     except ValueError:
+    #         pass
 
 
 
