@@ -5,40 +5,52 @@ from typing_extensions import override
 
 from lib.guiframework import AppPageBase
 from lib.datasource.sqlite import DataSource
-class MyMainPage(AppPageBase):
+class OriginalMyMainPage(AppPageBase):
     """ Main page of app """
 
     def __init__(self, root:tk.Tk) -> None :
         super().__init__(root)
-        self.feet = ""
-        self.meters = ""
+        self.feet = tk.StringVar(value="")
+        self.meters = tk.StringVar(value="")
 
     @override
     def build_page(self) -> tk.Frame :
         root = self.root
         #mainframe: tk.Frame = tk.Frame(master=self.root, padding=10)
         mainframe = ttk.Frame(master=root, padding="3 3 12 12")
-
+        # +-------------------+--------------------+
+        # | Projects          | Details            |
+        # +-------------------+--------------------+
+        # | Search: _______   |  Name: xxx         |
+        # +-------------------+  Description: xxx  |
+        # |                   |  ...               |
+        # |                   |  ...               |
+        # |       List        |  ...               |
+        # |                   |  ...               |
+        # |                   |                    |
+        # +-------------------+  Created: mm/dd/yy |
+        # | New Edit Delete   |  Updated: mm/dd/yy |
+        # +-------------------+--------------------+
         root.title("Feet to Meters")
 
-        mainframe.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        mainframe.grid(column=0, row=0, sticky='nwes')
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=1)
 
         self.feet = tk.StringVar()
         self.feet.set("???")
         feet_entry = ttk.Entry(mainframe, width=7, textvariable=self.feet)
-        feet_entry.grid(column=2, row=1, sticky=(tk.W, tk.E))
+        feet_entry.grid(column=2, row=1, sticky='we')
 
         self.meters = tk.StringVar()
         self.meters.set("???")
-        ttk.Label(mainframe, textvariable=self.meters).grid(column=2, row=2, sticky=(tk.W, tk.E))
+        ttk.Label(mainframe, textvariable=self.meters).grid(column=2, row=2, sticky='we')
 
-        ttk.Button(mainframe, text="Calculate", command=self.calculate).grid(column=3, row=3, sticky=tk.W)
+        ttk.Button(mainframe, text="Calculate", command=self.calculate).grid(column=3, row=3, sticky='w')
 
-        ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky=tk.W)
-        ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky=tk.E)
-        ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky=tk.W)
+        ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky='w')
+        ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky='e')
+        ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky='w')
 
         for child in mainframe.winfo_children():
             child.grid_configure(padx=5, pady=5)

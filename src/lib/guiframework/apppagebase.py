@@ -11,4 +11,3 @@ class AppPageBase:
     def build_page(self) -> tk.Frame :
         pass
 
-#    pass

@@ -6,6 +6,8 @@ from platformdirs import user_data_dir
 from typing import Any, List, Optional, Tuple
 from datetime import datetime
 
+# TODO: DocStrings, make a singleton (pick an approach), perhaps implement a service provider to access the singleton
+
 class DataSource:
 
     # Credit for regexp use from SQLite/python: https://gist.github.com/eestrada/fd55398950c6ee1f1deb
