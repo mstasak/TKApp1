@@ -254,7 +254,7 @@ class DataSource:
         #self.db.execute(query, params)
         #result = True
         #self.db.commit()
-        query: str = "SELECT id, name FROM project"
+        query: str = "SELECT id, name, description, created, updated FROM project"
         params: dict[str, Any] | None = None
         if reg_exp_pattern != "":
             #params = {':name', reg_exp_pattern}
