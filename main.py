@@ -8,7 +8,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from lib.logger import applog
+from logger import applog
 from myapp import MyApp
 applog.config_logging()
 

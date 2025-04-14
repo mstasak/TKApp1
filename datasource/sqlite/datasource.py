@@ -23,7 +23,7 @@ class DataSource:
         return datetime.fromisoformat(val.decode())
 
     @staticmethod
-    def regexp(y, x, search=re.search):
+    def regexp(y: str, x: str, search=re.search) -> int:
         return 1 if search(y, x) else 0
 
     # _shared: DataSource = DataSource()
@@ -86,6 +86,7 @@ class DataSource:
             self.create_database()
         db_path = DataSource._db_filepath()
         self.db = sqlite3.connect(db_path, autocommit=False)  # will create if file not found
+        self.db.row_factory = sqlite3.Row
         self.db.create_function('regexp', 2, DataSource.regexp)
 
         return self.db is not None
@@ -257,8 +258,8 @@ class DataSource:
         query: str = "SELECT id, name, description, created, updated FROM project"
         params: dict[str, Any] | None = None
         if reg_exp_pattern != "":
-            #params = {':name', reg_exp_pattern}
-            query += " WHERE name REGEXP '[Cc]lean'"
+            params = {':reg_exp': reg_exp_pattern}
+            query += " WHERE name REGEXP :reg_exp"
         query += " ORDER BY name"
         result = self.query_multi_row(query, params)
         if not was_open:
