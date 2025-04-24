@@ -3,36 +3,14 @@ import tkinter as tk
 from tkinter import ttk, Tk, Listbox, StringVar
 from tkinter.ttk import Label, Scrollbar, Frame, Entry, Button
 from typing import cast  # Any, List, Optional, Tuple, cast
-
-from utility.servicedepot import ServiceDepot
 # from typing_extensions import override
+import globals
 from datapanel import DataPanel
-from datasource.sqlite import DataSource
+from dataaccess.sqlite.projectrow import ProjectRow
 
 
 class MyApp(tk.Frame):
     """App subclass, with customizations for this application"""
-
-    # project_list_source: list[tuple[Any, ...]] | None
-    # # services
-    #
-    # # widgets
-    # root: Tk
-    # panel_search: Frame
-    # panel_detail: DataPanel
-    # panel_buttons: Frame
-    # label_list: Label
-    # label_details: Label
-    # label_search: Label
-    # entry_search: Entry
-    # project_list: Listbox
-    # scrollbar: Scrollbar
-    # button_new: Button
-    # button_delete: Button
-    # button_edit: Button
-    #
-    # # binding variables
-    # search_text: tk.StringVar
 
     def __init__(self) -> None:
         super().__init__(padx=10, pady=10, background="Navy Blue")
@@ -40,9 +18,13 @@ class MyApp(tk.Frame):
         # self._default_position = [0, 0]
         # self._default_size = [1024, 768]
         # self.main_page: AppPageBase | None = MyMainPage(self)
+        self.is_editing: bool = False
 
         # services
-        self.db: DataSource = ServiceDepot.db_service()
+        from dataaccess.sqlite.idatasource import IDataSource
+        self.db: IDataSource = globals.service_depot.db_service()
+        from dataaccess.sqlite.iprojectadapter import IProjectAdapter
+        self.projects: IProjectAdapter = globals.service_depot.project_service()
 
         # bind variables
         self.search_text: StringVar = StringVar(value="")
@@ -63,10 +45,12 @@ class MyApp(tk.Frame):
         self.root.title("Projects")
         self.root.geometry("1024x768")
 
+        self.project_list_source: list[ProjectRow] | None = None
+
         clear_panel_style: ttk.Style = ttk.Style()
         clear_panel_style.configure("clear.TFrame", foreground="clear",
                                     background="clear")
-        self.panel_search:Frame = Frame(master=self, style='clear.TFrame')
+        self.panel_search: Frame = Frame(master=self, style='clear.TFrame')
         self.panel_search.grid(column=20, columnspan=11, row=10, sticky='nsew',
                                pady=10)
         # self.label_search = Label(self.panel_search, text="Search:")
@@ -80,7 +64,8 @@ class MyApp(tk.Frame):
 
         # self.label_list = Label(self, text="Projects")
         # self.label_list.grid(column=20, row=10, columnspan=2, sticky='ew')
-        self.project_list: Listbox = Listbox(self, bg='aliceblue', fg='black', bd='2',
+        self.project_list: Listbox = Listbox(self, bg='aliceblue', fg='black',
+                                             bd='2',
                                              # height=10, width=15,
                                              font='Courier 10',
                                              highlightcolor='cyan',
@@ -112,6 +97,10 @@ class MyApp(tk.Frame):
                                   command=self.on_edit_pressed)
         self.button_edit.pack(side='left', expand=True, pady=10)
         # fill='none', ipadx=0, ipady=0)
+        self.button_save = Button(self.panel_buttons, text="Save",
+                                  command=self.on_save_pressed)
+        self.button_cancel = Button(self.panel_buttons, text="Cancel",
+                                    command=self.on_cancel_pressed)
 
         self.pack(expand=True)
 
@@ -131,27 +120,67 @@ class MyApp(tk.Frame):
 
     def load_project_list(self, reg_exp_pattern: str = "") -> None:
         self.project_list.delete(0, tk.END)
-        self.project_list_source = self.db.get_project_list(reg_exp_pattern)
+        self.project_list_source: list[ProjectRow] | None = \
+            self.projects.get_project_list(reg_exp_pattern)
         # for i in range(1, 50):
         if self.project_list_source:
             for row in self.project_list_source:
-                self.project_list.insert(tk.END, row[1])
+                self.project_list.insert(tk.END, row.name)
 
     def on_search_pressed(self) -> None:
-        pass
+        self.configure_mode(editing=False)
 
     def on_new_pressed(self) -> None:
-        pass
+        row = self.projects.new_row()
+        self.panel_detail.push_data_row(row)
+        self.configure_mode(editing=True)
 
     def on_edit_pressed(self) -> None:
-        pass
+        self.configure_mode(not self.is_editing)  # (True)
 
     def on_delete_pressed(self) -> None:
         pass
 
-    def on_item_selected(self, evt: tk.Event) -> None:
+    def on_save_pressed(self) -> None:
+        is_new = False
+        row = self.panel_detail.pull_data_row()
+        new_id = self.projects.save_row(row)  # int if new row created
+        if new_id is not None:
+            is_new = True
+            assert(row.id is None, "Incorrectly inserted an existing project row")
+            row.id = new_id
+
+        if is_new:
+            self.project_list_source.append(row)
+            new_ix = len(self.project_list.children) - 1
+            self.project_list.selection_set(new_ix, new_ix)
+        else:
+            sel: list[int] | None = self.project_list.curselection()
+            if sel and self.project_list_source:
+                ix = sel[0]
+                old_row = self.project_list_source[ix]
+                assert(old_row.id == row.id, "Incorrectly inserted an existing project row")
+                self.panel_detail.push_data_row(row)
+            else:
+                old_ix = -1
+                for ky, item in self.project_list.children:
+                    if item.id == row.id:
+                        old_ix = ky
+                        break
+                if old_ix >= 0:
+                    self.project_list.children[old_ix] = row
+                self.panel_detail.clear_data()
+
+        self.configure_mode(False)
+        self.on_item_selected()
+
+    def on_cancel_pressed(self) -> None:
+        self.configure_mode(False)
+        self.on_item_selected()
+
+    def on_item_selected(self, _: tk.Event | None = None) -> None:
         """ copy the selected list item's details into the detail panel """
-        sel = self.project_list.curselection()
+        sel: list[int] | None = self.project_list.curselection()
         if sel and self.project_list_source:
             ix = sel[0]
             row = self.project_list_source[ix]
@@ -172,4 +201,35 @@ class MyApp(tk.Frame):
     #   flake8 --enable-extensions True --statistics myapp.py
     # static rules check
     #   mypy --string myapp.py
-    
+    def configure_mode(self, editing: bool | None = None) -> bool:
+        if editing is not None:
+            if self.is_editing != editing:
+                if editing:
+                    # set up editing mode: change button bar to Save, Cancel
+                    # and disable and dim selection list and search
+                    self.button_delete.pack_forget()
+                    self.button_new.pack_forget()
+                    self.button_edit.pack_forget()
+                    #self.button_save.pack_forget()
+                    #self.button_cancel.pack_forget()
+                    #self.button_delete.pack(side='left', expand=True, pady=10)
+                    #self.button_new.pack(side='left', expand=True, pady=10)
+                    #self.button_edit.pack(side='left', expand=True, pady=10)
+                    self.button_save.pack(side='left', expand=True, pady=10)
+                    self.button_cancel.pack(side='left', expand=True, pady=10)
+                else:
+                    # set up non-editing (selection) mode:
+                    # change button bar to New, Edit, Delete
+                    # and disable and dim edit panel
+                    #self.button_delete.pack_forget()
+                    #self.button_new.pack_forget()
+                    #self.button_edit.pack_forget()
+                    self.button_save.pack_forget()
+                    self.button_cancel.pack_forget()
+                    self.button_delete.pack(side='left', expand=True, pady=10)
+                    self.button_new.pack(side='left', expand=True, pady=10)
+                    self.button_edit.pack(side='left', expand=True, pady=10)
+                    #self.button_save.pack(side='left', expand=True, pady=10)
+                    #self.button_cancel.pack(side='left', expand=True, pady=10)
+                self.is_editing = editing
+        return self.is_editing

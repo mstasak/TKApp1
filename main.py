@@ -1,9 +1,9 @@
 """ TKAPP1 main startup code """
-
 # very crude string output to debug package:class:module imports
+# import sys
+# raise RuntimeError(sys.path)
+from utility.servicedepot import ServiceDepot
 
-#import sys
-#raise RuntimeError(sys.path)
 
 import logging
 logger = logging.getLogger(__name__)
